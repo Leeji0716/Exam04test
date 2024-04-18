@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
@@ -8,22 +8,36 @@
 </head>
 <body>
 <div class="bg-yellow-400">
-    <div class="bg-blue-300">logo</div>
+    <div class="bg-blue-300">
+        <a href="/" >logo</a>
+    </div>
     <div class="bg-red-600 flex">
-        <div class="bg-red-300 w-[20%] h-[800px] text-center ">
-            <ul class="h-[100%]">
-                <li th:each="note : ${noteList}" th:class="${note.id == targetNote.id} ? 'bg-blue-600' : ''">
-                    <a th:href="@{|/detail/${note.id}|}" th:text="${note.title}"></a>
-                </li>
-            </ul>
-
+        <div class="sidebar bg-green-300 w-[20%] h-[800px] text-center overflow-y-auto">
+            <div>
+                <ul class="h-[100%]">
+                    <li th:each="note : ${noteList}" th:class="${note.id == targetNote.id} ? 'bg-blue-500' : ''">
+                        <a th:href="@{|/detail/${note.id}|}" th:text="${note.title}"></a>
+                    </li>
+                </ul>
+            </div>
             <form action="/write" method="post">
                 <input type="submit" value="추가">
             </form>
         </div>
-
+        <div id="sidebar" class="sidebar bg-red-300 w-[20%] h-[800px] text-center overflow-y-auto">
+            <div>
+                <ul class="h-[100%]">
+                    <li th:each="note : ${noteList}" th:class="${note.id == targetNote.id} ? 'bg-blue-500' : ''">
+                        <a th:href="@{|/detail/${note.id}|}" th:text="${note.title}"></a>
+                    </li>
+                </ul>
+            </div>
+            <form action="/write" method="post">
+                <input type="submit" value="추가">
+            </form>
+        </div>
         <div class="bg-green-300 w-[80%]">
-            <form action="/update" method="post">
+            <form action="/update" method="post" class="modify">
                 <div>
                     <input type="hidden" name="id" th:value="${targetNote.id}">
                 </div>
@@ -37,11 +51,47 @@
                     <input type="submit" value="수정">
                 </div>
             </form>
-            <form th:action="@{|/delete/${targetNote.id}|}" method="post">
+            <form th:action="@{|/delete/${targetNote.id}|}" method="post" class="delete">
                 <input type="submit" value="삭제">
             </form>
         </div>
     </div>
 </div>
+
+<script type='text/javascript'>
+    const sidebar = document.getElementById('sidebar');
+    sidebar.addEventListener('scroll', function() {
+        // 스크롤이 발생하면 실행되는 함수
+        if (sidebar.scrollWidth > sidebar.clientWidth) {
+            // 스크롤 가능한 경우에만 실행
+            sidebar.classList.add('slide');
+        } else {
+            // 스크롤이 불가능한 경우에는 슬라이드 효과 제거
+            sidebar.classList.remove('slide');
+        }
+    });
+
+    const modify_forms = document.getElementsByClassName("modify");
+    Array.from(modify_forms).forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // 기본 제출 행동을 중단합니다.
+            if(confirm("정말로 수정하시겠습니까?")) {
+                // 양식을 직접 제출합니다.
+                this.submit();
+            }
+        });
+    });
+
+    const delete_forms = document.getElementsByClassName("delete");
+    Array.from(delete_forms).forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // 기본 제출 행동을 중단합니다.
+            if(confirm("정말로 삭제하시겠습니까?")) {
+                // 양식을 직접 제출합니다.
+                this.submit();
+            }
+        });
+    });
+</script>
 </body>
 </html>

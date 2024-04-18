@@ -11,8 +11,8 @@ import java.util.List;
 @Controller
 @RequiredArgsConstructor
 public class NoteController {
-
     private final NoteRepository noteRepository;
+    private final NoteService noteService;
 
     @RequestMapping("/test")
     @ResponseBody
@@ -24,9 +24,8 @@ public class NoteController {
     public String main(Model model) {
         //1. DB에서 데이터 꺼내오기
         List<Note> noteList = noteRepository.findAll();
-
-        if(noteList.isEmpty()) {
-            saveDefault();
+        if (noteList.isEmpty()){
+            Default();
             return "redirect:/";
         }
 
@@ -39,28 +38,33 @@ public class NoteController {
 
     @PostMapping("/write")
     public String write() {
-
-        saveDefault();
-
+        Default();
         return "redirect:/";
     }
 
+//    @PostMapping("/writeBook")
+//    public String writeBook() {
+//        noteBookController.DefaultBook();
+//        return "redirect:/";
+//    }
+
     @GetMapping("/detail/{id}")
     public String detail(Model model, @PathVariable Long id) {
-        Note note = noteRepository.findById(id).get();
+        Note note = noteService.findNote(id);
+        List<Note> noteList = noteRepository.findAll();
+
+        model.addAttribute("noteList", noteList);
         model.addAttribute("targetNote", note);
-        model.addAttribute("noteList", noteRepository.findAll());
 
         return "main";
     }
+
     @PostMapping("/update")
     public String update(Long id, String title, String content) {
-        Note note = noteRepository.findById(id).get();
-
-        if(title.trim().length() == 0) {
-            title = "제목 없음";
+        Note note = noteService.findNote(id);
+        if(title.trim().length() == 0){
+            title = "제목없음";
         }
-
         note.setTitle(title);
         note.setContent(content);
 
@@ -69,18 +73,19 @@ public class NoteController {
     }
 
     @PostMapping("/delete/{id}")
-    public String delete(@PathVariable("id") Long id) {
-
+    public String delete(@PathVariable ("id") long id){
         noteRepository.deleteById(id);
         return "redirect:/";
     }
 
-    private Note saveDefault() {
+    public void Default(){
         Note note = new Note();
         note.setTitle("new title..");
         note.setContent("");
         note.setCreateDate(LocalDateTime.now());
 
-        return noteRepository.save(note);
+        noteRepository.save(note);
     }
+
+
 }

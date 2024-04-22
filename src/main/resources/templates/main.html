@@ -1,29 +1,63 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
     <link rel="stylesheet" href="/main.css">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.10.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
 <div class="bg-yellow-400">
-    <div class="bg-blue-300">logo</div>
+    <div class="bg-blue-300">
+        <a href="/">logo</a></div>
     <div class="bg-red-600 flex">
-        <div class="bg-red-300 w-[20%] h-[800px] text-center ">
+        <div class="sidebar bg-green-100 w-[20%] h-[800px] overflow-y-auto">
+            <ul class="menu h-[100%]">
+                <li th:each="noteBook : ${noteBookList}" >
+                    <th:block th:if="${!#lists.isEmpty(noteBook.children)}">
+                        <details open>
+                            <summary th:class="${noteBook.id==targetNoteBook.id} ? 'bg-blue-500 rounded-box' : ''">
+                                <a th:href="@{|/detailBook/${noteBook.id}|}" th:text="${noteBook.name}"></a>
+                            </summary>
+                            <ul>
+                                <li th:each="child : ${noteBook.children}" th:class="${child.id==targetNoteBook.id} ? 'bg-blue-500 rounded-box' : ''">
+                                    <a th:href="@{|/detailBook/${child.id}|}" th:text="${child.name}"></a>
+                                </li>
+                            </ul>
+                        </details>
+                    </th:block>
+                    <th:block th:if="${#lists.isEmpty(noteBook.children) and noteBook.parent == null}">
+                        <summary th:class="${noteBook.id==targetNoteBook.id} ? 'bg-blue-500 rounded-box' : ''">
+                            <a th:href="@{|/detailBook/${noteBook.id}|}" th:text="${noteBook.name}"></a>
+                        </summary>
+                    </th:block>
+                </li>
+
+                <form action="/writeBook" method="post">
+                    <input type="submit" value="추가">
+                </form>
+                <form th:action="@{|/groups/${targetNoteBook.id}/writeBook|}" method="post">
+                    <input type="submit" value="하위 노트북 추가">
+                </form>
+            </ul>
+        </div>
+
+        <div id="sidebar" class="sidebar bg-red-300 w-[20%] h-[800px] text-center overflow-y-auto">
             <ul class="h-[100%]">
-                <li th:each="note : ${noteList}">
+                <li th:each="note : ${noteList}" th:class="${note.id==targetNote.id} ? 'bg-blue-500' : ''">
                     <a th:href="@{|/detail/${note.id}|}" th:text="${note.title}"></a>
                 </li>
-            </ul>
 
-            <form action="/write" method="post">
-                <input type="submit" value="추가">
-            </form>
+                <form action="/write" method="post">
+                    <input type="hidden" name="targetNoteBookId" th:value="${targetNoteBook.id}">
+                    <input type="submit" value="추가">
+                </form>
+            </ul>
         </div>
 
         <div class="bg-green-300 w-[80%]">
-            <form action="/update" method="post">
+            <form action="/update" method="post" class="modify">
                 <div>
                     <input type="hidden" name="id" th:value="${targetNote.id}">
                 </div>
@@ -37,8 +71,45 @@
                     <input type="submit" value="수정">
                 </div>
             </form>
+            <form th:action="@{|/delete/${targetNote.id}|}" method="post" class="delete">
+                <div>
+                    <input type="submit" value="삭제">
+                </div>
+            </form>
         </div>
     </div>
 </div>
+
+<script>
+    const sidebar = document.getElementById('sidebar');
+    sidebar.addEventListener('scroll', function() {
+        if (sidebar.scrollWidth > sidebar.clientWidth) {
+            sidebar.classList.add('slide');
+        } else {
+            sidebar.classList.remove('slide');
+        }
+    });
+
+
+    const modifyForms = document.getElementsByClassName("modify");
+    Array.from(modifyForms).forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            if (confirm("정말로 수정하시겠습니까?")) {
+                this.submit();
+            }
+        });
+    });
+
+    const deleteForms = document.getElementsByClassName("delete");
+    Array.from(deleteForms).forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            if (confirm("정말로 삭제하시겠습니까?")) {
+                this.submit();
+            }
+        });
+    });
+</script>
 </body>
 </html>
